@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Distill — AI Text Summarizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;600&family=DM+Mono:wght@400&display=swap" rel="stylesheet"/>
+<style>
+:root{--ink:#0f0e0d;--paper:#f5f2ec;--cream:#ede9df;--surface:#fff;--accent:#c84b2f;--al:#f0cfc7;--gold:#b8963e;--muted:#8a8278;--border:#d4cfc5;--sh:rgba(15,14,13,.08);--tr:.22s ease}
+[data-theme=dark]{--ink:#e8e4dc;--paper:#161412;--cream:#1e1b18;--surface:#201d1a;--accent:#e05c3a;--al:#3d1f16;--gold:#c9a84c;--muted:#7a7268;--border:#2e2b27;--sh:rgba(0,0,0,.3)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;overflow-x:hidden;transition:background var(--tr),color var(--tr)}
+header{padding:1.6rem 2.5rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border);background:var(--cream);transition:background var(--tr),border-color var(--tr)}
+.logo{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;letter-spacing:-.02em}.logo span{color:var(--accent)}
+.tagline{font-size:.72rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:.75rem}
+.ai-badge{background:var(--ink);color:var(--paper);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:.28rem .7rem;border-radius:2px;transition:background var(--tr),color var(--tr)}
+#themeBtn{background:none;border:1px solid var(--border);border-radius:3px;padding:.28rem .6rem;cursor:pointer;font-size:.9rem;color:var(--muted);transition:all var(--tr)}
+#themeBtn:hover{border-color:var(--ink);color:var(--ink)}
+main{max-width:1100px;margin:0 auto;padding:2.5rem 2rem 5rem}
+.workspace{display:grid;grid-template-columns:1fr 1fr;gap:1.8rem;align-items:start}
+@media(max-width:740px){.workspace{grid-template-columns:1fr}header{padding:1.2rem 1.5rem;flex-wrap:wrap}main{padding:1.5rem 1rem 4rem}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;box-shadow:0 2px 16px var(--sh);transition:background var(--tr),border-color var(--tr)}
+.ph{padding:.85rem 1.3rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--cream);transition:background var(--tr)}
+.plabel{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.wc{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);background:var(--border);padding:.18rem .55rem;border-radius:20px;transition:background var(--tr)}.wc span{color:var(--accent);font-weight:700}
+textarea{width:100%;min-height:340px;padding:1.3rem;font-family:'DM Sans',sans-serif;font-size:.93rem;line-height:1.75;color:var(--ink);background:var(--surface);border:none;outline:none;resize:vertical;transition:background var(--tr),color var(--tr)}
+textarea::placeholder{color:var(--border)}
+.ctrl{padding:.85rem 1.3rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;background:var(--cream);transition:background var(--tr)}
+.btn{font-family:'DM Sans',sans-serif;font-weight:700;font-size:.78rem;letter-spacing:.04em;cursor:pointer;border:none;border-radius:3px;padding:.55rem 1.2rem;transition:all var(--tr)}
+.btn-p{background:var(--ink);color:var(--paper)}.btn-p:hover{background:var(--accent);transform:translateY(-1px);box-shadow:0 4px 12px rgba(200,75,47,.25)}.btn-p:active{transform:none}
+.btn-g{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:.72rem;padding:.42rem .85rem}.btn-g:hover{border-color:var(--ink);color:var(--ink)}
+.sw{display:flex;align-items:center;gap:.45rem;margin-left:auto;font-size:.72rem;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;width:76px;height:3px;background:var(--border);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--ink);border-radius:50%;cursor:pointer;transition:background var(--tr)}
+input[type=range]::-webkit-slider-thumb:hover{background:var(--accent)}
+.sb{min-height:340px;padding:1.3rem;font-size:.95rem;line-height:1.82;position:relative}
+.empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;color:var(--border);font-size:.83rem;text-align:center}
+.empty-icon{font-size:2.2rem;opacity:.45}
+.stext{opacity:0;transform:translateY(8px);transition:opacity .4s ease,transform .4s ease;display:none}
+.stext.on{opacity:1;transform:none;display:block}
+.kw{background:linear-gradient(to bottom,transparent 55%,var(--al) 55%);font-weight:600;border-radius:1px}
+.ss{opacity:0;animation:fu .32s ease forwards}
+@keyframes fu{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.oc{padding:.85rem 1.3rem;border-top:1px solid var(--border);display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;background:var(--cream);transition:background var(--tr)}
+.rb{margin-left:auto;font-family:'DM Mono',monospace;font-size:.7rem;color:var(--gold);font-weight:500}
+.tg{display:flex;border:1px solid var(--border);border-radius:3px;overflow:hidden}
+.tb{font-family:'DM Sans',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:.38rem .75rem;background:transparent;border:none;cursor:pointer;color:var(--muted);transition:all var(--tr)}
+.tb.on{background:var(--ink);color:var(--paper)}
+.spin{display:none;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading .spin{display:inline-block}.loading .bt{display:none}
+.rs{margin-top:2rem;padding-top:1.8rem;border-top:1px solid var(--border)}
+.rt{font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:.9rem}
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.9rem}
+.rc{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:.9rem 1.1rem;font-size:.8rem;line-height:1.6;color:var(--muted);cursor:pointer;transition:all var(--tr);border-left:3px solid transparent}
+.rc:hover{border-left-color:var(--accent);color:var(--ink);transform:translateY(-2px);box-shadow:0 4px 12px var(--sh)}
+.rct{font-size:.65rem;color:var(--border);margin-bottom:.3rem;font-family:'DM Mono',monospace}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--paper);font-size:.8rem;padding:.6rem 1.3rem;border-radius:3px;opacity:0;transition:all .3s ease;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Dis<span>till</span></div>
+  <div class="tagline">Text Summarizer</div>
+  <div class="hdr-right">
+    <button id="themeBtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    <div class="ai-badge">AI Powered</div>
+  </div>
+</header>
+<main>
+  <div class="workspace">
+    <div class="panel">
+      <div class="ph"><span class="plabel">Input</span><span class="wc">Words: <span id="ic">0</span></span></div>
+      <textarea id="txt" placeholder="Paste or type your text here. Distill will extract what matters most…" spellcheck="false"></textarea>
+      <div class="ctrl">
+        <button class="btn btn-p" id="sb2" onclick="summarize()"><span class="bt">✦ Summarize</span><span class="spin"></span></button>
+        <button class="btn btn-g" onclick="clearAll()">Clear</button>
+        <div class="sw"><span>Brief</span><input type="range" id="ls" min="1" max="5" value="3"/><span>Full</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="plabel">Summary</span><span class="wc">Words: <span id="oc2">0</span></span></div>
+      <div class="sb">
+        <div class="empty" id="es"><div class="empty-icon">◎</div><div>Your summary will appear here</div><div style="font-size:.72rem;opacity:.6">Paste text and click Summarize</div></div>
+        <div class="stext" id="st"></div>
+      </div>
+      <div class="oc">
+        <div class="tg"><button class="tb on" id="bS" onclick="showView('summary')">Summary</button><button class="tb" id="bO" onclick="showView('original')">Original</button></div>
+        <button class="btn btn-g" id="cpBtn" onclick="copySummary()" style="display:none">Copy</button>
+        <button class="btn btn-g" id="dlBtn" onclick="dlSummary()" style="display:none">↓ Save</button>
+        <div class="rb" id="rb" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+  <div class="rs" id="rSec" style="display:none">
+    <div class="rt">Recent Summaries</div>
+    <div class="rg" id="rg"></div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+let cur='',orig='';
+const SW=new Set(['a','an','the','and','but','or','for','nor','on','at','to','from','by','in','of','up','as','is','was','are','were','be','been','being','have','has','had','do','does','did','will','would','could','should','may','might','can','it','its','this','that','these','those','i','me','my','we','our','you','your','he','him','his','she','her','they','them','their','what','which','who','not','no','so','yet','few','more','most','other','some','than','then','too','very','just','with','about','after','before','into','through','during','also','however','therefore','although','because','since','while','if','when','where','how','there','here','now','only','even','still','all','any','every','one','two','three','said','say','like','well','back','new','good','many','much','same','own','us']);
+const $=id=>document.getElementById(id);
+const cw=t=>t.trim()?t.trim().split(/\s+/).length:0;
+$('txt').addEventListener('input',()=>$('ic').textContent=cw($('txt').value));
+
+function toggleTheme(){const h=document.documentElement;const d=h.getAttribute('data-theme')==='dark';h.setAttribute('data-theme',d?'light':'dark');$('themeBtn').textContent=d?'🌙':'☀️';localStorage.setItem('distill_theme',d?'light':'dark')}
+
+function freq(text){const w=text.toLowerCase().match(/\b[a-z]{3,}\b/g)||[];const f={};w.forEach(x=>{if(!SW.has(x))f[x]=(f[x]||0)+1});const mx=Math.max(...Object.values(f),1);Object.keys(f).forEach(k=>f[k]/=mx);return f}
+function score(s,f,i,n){const w=s.toLowerCase().match(/\b[a-z]{3,}\b/g)||[];const m=w.filter(x=>!SW.has(x));if(!m.length)return 0;let sc=m.reduce((a,x)=>a+(f[x]||0),0)/m.length;if(i===0)sc*=1.4;else if(i<n*.2)sc*=1.15;if(/\d/.test(s))sc*=1.1;if(w.length<6)sc*=.7;return sc}
+function kwds(text,n=8){return Object.entries(freq(text)).sort((a,b)=>b[1]-a[1]).slice(0,n).map(([w])=>w)}
+function hlKw(html,kws){kws.forEach(k=>{html=html.replace(new RegExp(`\\b(${k})\\b`,'gi'),'<mark class="kw">$1</mark>')});return html}
+
+function summarize(){
+  const text=$('txt').value.trim();
+  if(!text){toast('Please enter some text first');return}
+  if(cw(text)<20){toast('Text is too short to summarize');return}
+  orig=text;const btn=$('sb2');btn.classList.add('loading');btn.disabled=true;
+  setTimeout(()=>{
+    const lvl=parseInt($('ls').value),sents=text.match(/[^.!?]+[.!?]+/g)||[text],n=sents.length;
+    const tc=Math.max(1,Math.round(n*(0.1+lvl*.1))),f=freq(text);
+    const top=sents.map((s,i)=>({t:s.trim(),i,sc:score(s,f,i,n)})).sort((a,b)=>b.sc-a.sc).slice(0,tc).sort((a,b)=>a.i-b.i);
+    cur=top.map(s=>s.t).join(' ');render(cur);save(text,cur);loadHist();
+    btn.classList.remove('loading');btn.disabled=false;showView('summary');
+  },680);
+}
+
+function render(sum){
+  const el=$('st'),ks=kwds(orig);
+  let html=(sum.match(/[^.!?]+[.!?]+/g)||[sum]).map((s,i)=>`<span class="ss" style="animation-delay:${i*.08}s">${s.trim()} </span>`).join('');
+  el.innerHTML=hlKw(html,ks);
+  $('es').style.display='none';el.style.display='block';
+  requestAnimationFrame(()=>el.classList.add('on'));
+  const ow=cw(sum),iw=cw(orig);$('oc2').textContent=ow;
+  const rb=$('rb');rb.textContent=`↓ ${Math.round((1-ow/iw)*100)}% shorter`;rb.style.display='block';
+  $('cpBtn').style.display=$('dlBtn').style.display='inline-block';
+}
+
+function showView(v){
+  $('bS').classList.toggle('on',v==='summary');$('bO').classList.toggle('on',v==='original');
+  if(!cur)return;const el=$('st');
+  if(v==='original'){el.innerHTML=`<span style="color:var(--muted);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;display:block;margin-bottom:.7rem">Original</span>${orig}`;el.style.display='block';el.classList.add('on')}
+  else render(cur);
+}
+function clearAll(){$('txt').value='';$('ic').textContent=$('oc2').textContent='0';const el=$('st');el.classList.remove('on');setTimeout(()=>{el.style.display='none';el.innerHTML=''},300);$('es').style.display='flex';$('rb').style.display=$('cpBtn').style.display=$('dlBtn').style.display='none';cur=orig=''}
+function copySummary(){if(cur)navigator.clipboard.writeText(cur).then(()=>toast('Summary copied!'))}
+function dlSummary(){if(!cur)return;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([cur],{type:'text/plain'}));a.download='summary.txt';a.click();toast('Downloaded')}
+function save(o,s){const h=JSON.parse(localStorage.getItem('dh')||'[]');h.unshift({sn:s.slice(0,100)+(s.length>100?'…':''),f:s,o,t:Date.now()});localStorage.setItem('dh',JSON.stringify(h.slice(0,6)))}
+function loadHist(){const h=JSON.parse(localStorage.getItem('dh')||'[]');const sec=$('rSec');if(!h.length){sec.style.display='none';return}sec.style.display='block';$('rg').innerHTML=h.map((x,i)=>`<div class="rc" onclick="loadH(${i})"><div class="rct">${ago(x.t)}</div>${x.sn}</div>`).join('')}
+function loadH(i){const h=JSON.parse(localStorage.getItem('dh')||'[]'),x=h[i];if(!x)return;$('txt').value=x.o;$('ic').textContent=cw(x.o);orig=x.o;cur=x.f;render(x.f);toast('Loaded from history')}
+function ago(ts){const d=Date.now()-ts;if(d<6e4)return'Just now';if(d<36e5)return`${Math.floor(d/6e4)}m ago`;if(d<864e5)return`${Math.floor(d/36e5)}h ago`;return`${Math.floor(d/864e5)}d ago`}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200)}
+
+const saved=localStorage.getItem('distill_theme')||'light';document.documentElement.setAttribute('data-theme',saved);$('themeBtn').textContent=saved==='dark'?'☀️':'🌙';loadHist();
+</script>
+</body>
+</html>
